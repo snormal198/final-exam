@@ -6,9 +6,6 @@ import matplotlib.pyplot as plt
 url = "https://raw.githubusercontent.com/iantonios/dsc205/refs/heads/main/bike_sharing.csv"
 df = pd.read_csv(url)
 
-# Debugging step: check column names
-st.write("Columns in the dataset:", df.columns)
-
 # Ensure the date column is properly formatted
 if 'dteday' in df.columns:  # Check if the column exists
     df['dteday'] = pd.to_datetime(df['dteday'])  # Convert to datetime
