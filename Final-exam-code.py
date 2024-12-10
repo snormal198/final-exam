@@ -7,6 +7,9 @@ url = "https://raw.githubusercontent.com/iantonios/dsc205/refs/heads/main/bike_s
 df = pd.read_csv(url)
 
 # Ensure the date column is properly formatted
+# This code ensures the date column (dteday) is correctly formatted to prevent errors.
+# It converts the column to a standardized datetime format 
+#  a clear error message is displayed if the column is missing data, and preventing crashes.
 if 'dteday' in df.columns:  # Check if the column exists
     df['dteday'] = pd.to_datetime(df['dteday'])  # Convert to datetime
     df['day'] = df['dteday'].dt.day  # Extract day
@@ -40,6 +43,7 @@ if 'season' in df.columns and 'cnt' in df.columns:  # Ensure columns exist
     ax.set_ylabel("Total Ridership")
     st.pyplot(fig)
 else:
+    # If the column 'dteday' is not found in the dataset, an error message is displayed in the Streamlit dashboard using st.error().
     st.error("The dataset does not have the required columns ('season' or 'cnt').")
 
 # Create a line plot for total ridership with a rolling average
