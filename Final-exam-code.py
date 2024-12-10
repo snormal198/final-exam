@@ -3,51 +3,64 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load the dataset
-data_url = "https://raw.githubusercontent.com/iantonios/dsc205/refs/heads/main/bike_sharing.csv"
-df = pd.read_csv(data_url)
+url = "https://raw.githubusercontent.com/iantonios/dsc205/refs/heads/main/bike_sharing.csv"
+df = pd.read_csv(url)
 
-# Convert date column to datetime if it exists
-df['day'] = pd.to_datetime(df['day'])
+# Debugging step: check column names
+st.write("Columns in the dataset:", df.columns)
 
-# Streamlit app
-st.title("Bike Sharing Data Visualization")
+# Ensure the date column is properly formatted
+if 'dteday' in df.columns:  # Check if the column exists
+    df['dteday'] = pd.to_datetime(df['dteday'])  # Convert to datetime
+    df['day'] = df['dteday'].dt.day  # Extract day
+else:
+    st.error("The dataset does not have a column named 'dteday'. Please check the dataset structure.")
 
-# Line Plot: Total Ridership Over Time
-st.subheader("Total Ridership Over Time")
-fig, ax = plt.subplots()
-ax.plot(df['day'], df['cnt'], label='Total Ridership', color='blue')
-ax.set_xlabel("Date")
-ax.set_ylabel("Total Ridership")
-ax.set_title("Total Ridership Over Time")
-ax.legend()
-st.pyplot(fig)
+# Streamlit App Title
+st.title("Bike Sharing Analysis")
 
-# Bar Chart: Total Ridership by Season
-st.subheader("Total Ridership by Season")
-season_map = {1: 'Winter', 2: 'Spring', 3: 'Summer', 4: 'Fall'}
-df['season_name'] = df['season'].map(season_map)
-season_data = df.groupby('season_name')['cnt'].sum().reset_index()
-fig, ax = plt.subplots()
-ax.bar(season_data['season_name'], season_data['cnt'], color=['blue', 'green', 'orange', 'red'])
-ax.set_xlabel("Season")
-ax.set_ylabel("Total Ridership")
-ax.set_title("Total Ridership by Season")
-st.pyplot(fig)
+# Create a line plot of total ridership over the entire period
+st.subheader("Line Plot: Total Ridership Over Time")
+if 'cnt' in df.columns:  # Ensure the column exists
+    fig, ax = plt.subplots()
+    ax.plot(df['dteday'], df['cnt'], label="Total Ridership")
+    ax.set_title("Total Ridership Over Time")
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Ridership Count")
+    ax.legend()
+    st.pyplot(fig)
+else:
+    st.error("The dataset does not have a column named 'cnt'. Please check the dataset structure.")
 
-# Interactive Line Plot: Rolling Average
-st.subheader("Rolling Average for Total Ridership")
-average_option = st.radio("Select Rolling Average:", options=["7-day", "14-day"])
-window = 7 if average_option == "7-day" else 14
-df[f'{window}-day_avg'] = df['cnt'].rolling(window=window).mean()
+# Create a bar chart for total ridership by season
+st.subheader("Bar Chart: Total Ridership by Season")
+if 'season' in df.columns and 'cnt' in df.columns:  # Ensure columns exist
+    season_ridership = df.groupby('season')['cnt'].sum()
+    fig, ax = plt.subplots()
+    season_ridership.plot(kind='bar', ax=ax)
+    ax.set_title("Total Ridership by Season")
+    ax.set_xlabel("Season (1 = Winter, 2 = Spring, 3 = Summer, 4 = Fall)")
+    ax.set_ylabel("Total Ridership")
+    st.pyplot(fig)
+else:
+    st.error("The dataset does not have the required columns ('season' or 'cnt').")
 
-fig, ax = plt.subplots()
-ax.plot(df['day'], df['cnt'], label='Original Data', color='lightgray')
-ax.plot(df['day'], df[f'{window}-day_avg'], label=f'{window}-Day Average', color='blue')
-ax.set_xlabel("Date")
-ax.set_ylabel("Total Ridership")
-ax.set_title(f"Total Ridership with {window}-Day Rolling Average")
-ax.legend()
-st.pyplot(fig)
-
-# Notes for Submission
-st.info("Submit this Python script and screenshots of the app running with different visualizations.")
+# Create a line plot for total ridership with a rolling average
+st.subheader("Line Plot: Total Ridership with Rolling Average")
+if 'cnt' in df.columns:
+    rolling_option = st.radio(
+        "Select Rolling Average:",
+        options=["7-day average", "14-day average"]
+    )
+    window = 7 if rolling_option == "7-day average" else 14
+    df['rolling_avg'] = df['cnt'].rolling(window=window).mean()
+    fig, ax = plt.subplots()
+    ax.plot(df['dteday'], df['cnt'], label="Daily Ridership")
+    ax.plot(df['dteday'], df['rolling_avg'], label=f"{window}-Day Rolling Average", linestyle='--')
+    ax.set_title("Total Ridership with Rolling Average")
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Ridership Count")
+    ax.legend()
+    st.pyplot(fig)
+else:
+    st.error("The dataset does not have a column named 'cnt'. Please check the dataset structure.")
